@@ -11,7 +11,7 @@ type cliCommand struct {
 	callback	func() error
 }
 
-func registerCommands() map[string]cliCommand {
+func getCommands() map[string]cliCommand {
 
 	supportedCommands := map[string]cliCommand{
 		"exit": {
@@ -34,18 +34,22 @@ func registerCommands() map[string]cliCommand {
 /// Callbacks:
 
 func commandExit() error {
-	fmt.Printf("Closing the Pokedex... Goodbye!\n")
+	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
 func commandHelp() error {
-	fmt.Printf("Welcome to the Pokedex!\nUsage:\n\n")
+	fmt.Println()
+	fmt.Println("Welcome to the Pokedex!")
+	fmt.Println("Usage:")
+	fmt.Println()
 
-	supportedCommands := registerCommands()
-	for _, command := range supportedCommands {
+	for _, command := range getCommands() {
 		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
-	
+
+	fmt.Println()
+
 	return nil
 }
