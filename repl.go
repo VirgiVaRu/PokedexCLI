@@ -5,10 +5,13 @@ import (
 	"strings"
 	"bufio"
 	"os"
+	"time"
+	"github.com/VirgiVaRu/pokedexcli/internal/pokecache"
 )
 
 func startREPL() {
 	scanner := bufio.NewScanner(os.Stdin)
+	cache := pokecache.NewCache(5 * time.Millisecond)
 	config := &config{
 				Next: "https://pokeapi.co/api/v2/location-area/",
 				Previous: nil,
@@ -23,7 +26,7 @@ func startREPL() {
 
 		command, ok := getCommands()[commandWritten]
 		if ok {
-			err := command.callback(config)
+			err := command.callback(config, cache)
 			if err != nil {
 				fmt.Println(err)
 			}

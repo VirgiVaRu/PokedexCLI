@@ -41,5 +41,10 @@ func GetLocationPage(url string) LocationPage {
 	return locationPage
 }
 
+func (locationPage LocationPage) Print() {
+	for _, place := range locationPage.Results {
+		fmt.Println(place.Name)
+	}
+}
 
 
