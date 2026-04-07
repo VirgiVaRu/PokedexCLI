@@ -23,10 +23,20 @@ func startREPL() {
 		words := cleanInput(text)
 
 		commandWritten := words[0]
+		var parameters []string
+		if len(words) > 1 {
+			for i, word := range words {
+				if i == 0 {
+					continue
+				}
+				parameters = append(parameters, word)
+			}
+			
+		}
 
 		command, ok := getCommands()[commandWritten]
 		if ok {
-			err := command.callback(config, cache)
+			err := command.callback(config, cache, parameters)
 			if err != nil {
 				fmt.Println(err)
 			}
