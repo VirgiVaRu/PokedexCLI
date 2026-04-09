@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"github.com/VirgiVaRu/pokedexcli/internal/pokecache"
+	"github.com/VirgiVaRu/pokedexcli/internal/PokeAPI"
 )
 
 func startREPL() {
@@ -16,11 +17,18 @@ func startREPL() {
 				Next: "https://pokeapi.co/api/v2/location-area/",
 				Previous: nil,
 			}
+	pokedex := &Pokedex{
+		caughtPokemon: make(map[string]PokeAPI.Pokemon),
+	}
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
 		text := scanner.Text()
 		words := cleanInput(text)
+
+		if len(words) == 0 {
+			continue
+		}
 
 		commandWritten := words[0]
 		var parameters []string
@@ -36,7 +44,7 @@ func startREPL() {
 
 		command, ok := getCommands()[commandWritten]
 		if ok {
-			err := command.callback(config, cache, parameters)
+			err := command.callback(config, cache, parameters, pokedex)
 			if err != nil {
 				fmt.Println(err)
 			}

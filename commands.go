@@ -11,7 +11,7 @@ import (
 type cliCommand struct {
 	name		string
 	description	string
-	callback	func(*config, pokecache.Cache, []string) error
+	callback	func(*config, pokecache.Cache, []string, *Pokedex) error
 }
 
 type config struct {
@@ -51,6 +51,12 @@ func getCommands() map[string]cliCommand {
 			description:	"Displays a list of all the Pokémon located at a location area",
 			callback: 		commandExplore,
 		},
+
+		"catch": {
+			name:			"catch",
+			description:	"Throws a pokeball to the specified pokemon and tries to catch it",
+			callback:		commandCatch,
+		},
 	}
 
 	return supportedCommands
@@ -59,13 +65,13 @@ func getCommands() map[string]cliCommand {
 
 /// Callbacks:
 
-func commandExit(config *config, cache pokecache.Cache, parameters []string) error {
+func commandExit(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(config *config, cache pokecache.Cache, parameters []string) error {
+func commandHelp(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -80,7 +86,7 @@ func commandHelp(config *config, cache pokecache.Cache, parameters []string) err
 	return nil
 }
 
-func commandMap(config *config, cache pokecache.Cache, parameters []string) error {
+func commandMap(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
 	val, found := cache.Get(config.Next)
 	var locationPage PokeAPI.LocationPage
 	if found {
@@ -105,7 +111,7 @@ func commandMap(config *config, cache pokecache.Cache, parameters []string) erro
 	return nil
 }
 
-func commandMapb(config *config, cache pokecache.Cache, parameters []string) error {
+func commandMapb(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
 	if config.Previous == nil {
 		return fmt.Errorf("you're on the first page")
 	}
@@ -132,7 +138,7 @@ func commandMapb(config *config, cache pokecache.Cache, parameters []string) err
 	return nil
 }
 
-func commandExplore(config *config, cache pokecache.Cache, parameters []string) error {
+func commandExplore(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
 	if len(parameters) < 1 {
 		return fmt.Errorf("missing parameter for explore command. Usage: explore <location-area-name>")
 	}
@@ -161,4 +167,41 @@ func commandExplore(config *config, cache pokecache.Cache, parameters []string) 
 
 	return nil
 
+}
+
+func commandCatch(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
+	if len(parameters) < 1 {
+		return fmt.Errorf("missing parameter for catch command. Usage: catch <pokemon-name>")
+	}
+
+	pokemonName := parameters[0]
+	fmt.Println("Throwing a Pokeball at " + pokemonName + "...")
+
+	pokemon, found := pokedex.caughtPokemon[pokemonName]
+	if !found {
+		url := "https://pokeapi.co/api/v2/pokemon/" + pokemonName
+		val, found := cache.Get(url)
+		if found {
+			err := json.Unmarshal(val, &pokemon)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			pokemon = PokeAPI.GetPokemon(url)
+			val, err := json.Marshal(pokemon)
+			if err != nil {
+				fmt.Println(err)
+			}
+			cache.Add(url, val)
+		}
+	}
+	
+	if pokemon.Catch() {
+		fmt.Println(parameters[0] + " was caught!")
+		pokedex.caughtPokemon[pokemonName] = pokemon
+	} else {
+		fmt.Println(parameters[0] + " escaped!")
+	}
+
+	return nil
 }
