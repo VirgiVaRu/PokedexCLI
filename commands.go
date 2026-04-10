@@ -57,6 +57,12 @@ func getCommands() map[string]cliCommand {
 			description:	"Throws a pokeball to the specified pokemon and tries to catch it",
 			callback:		commandCatch,
 		},
+
+		"inspect": {
+			name:			"inspect",
+			description:	"shows information of a pokemon you have caught",
+			callback:		commandInspect,
+		},
 	}
 
 	return supportedCommands
@@ -201,6 +207,33 @@ func commandCatch(config *config, cache pokecache.Cache, parameters []string, po
 		pokedex.caughtPokemon[pokemonName] = pokemon
 	} else {
 		fmt.Println(parameters[0] + " escaped!")
+	}
+
+	return nil
+}
+
+func commandInspect(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
+	if len(parameters) < 1 {
+		return fmt.Errorf("missing parameter for inspect command. Usage: inspect <pokemon-name>")
+	}
+
+	pokemonName := parameters[0]
+
+	pokemon, found := pokedex.caughtPokemon[pokemonName]
+	if !found {
+		fmt.Println("you have not caught that pokemon")
+	} else {
+		fmt.Println("Name: " + pokemonName)
+		fmt.Printf("Height: %d\n", pokemon.Height)
+		fmt.Printf("Weight: %d\n", pokemon.Weight)
+		fmt.Println("Stats:")
+		for _, stat := range pokemon.Stats {
+			fmt.Printf(" -%s: %d\n", stat.Stat.Name, stat.BaseStat)
+		}
+		fmt.Println("Types:")
+		for _, t := range pokemon.Types {
+			fmt.Println(" - " + t.Type.Name)
+		}	
 	}
 
 	return nil
