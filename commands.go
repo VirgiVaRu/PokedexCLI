@@ -63,6 +63,12 @@ func getCommands() map[string]cliCommand {
 			description:	"shows information of a pokemon you have caught",
 			callback:		commandInspect,
 		},
+
+		"pokedex": {
+			name:			"pokedex",
+			description:	"Displays the names of the pokemon you have caught",
+			callback:		commandPokedex,
+		},
 	}
 
 	return supportedCommands
@@ -204,6 +210,7 @@ func commandCatch(config *config, cache pokecache.Cache, parameters []string, po
 	
 	if pokemon.Catch() {
 		fmt.Println(parameters[0] + " was caught!")
+		fmt.Println("You may now inspect it with the inspect command.")
 		pokedex.caughtPokemon[pokemonName] = pokemon
 	} else {
 		fmt.Println(parameters[0] + " escaped!")
@@ -234,6 +241,19 @@ func commandInspect(config *config, cache pokecache.Cache, parameters []string, 
 		for _, t := range pokemon.Types {
 			fmt.Println(" - " + t.Type.Name)
 		}	
+	}
+
+	return nil
+}
+
+func commandPokedex(config *config, cache pokecache.Cache, parameters []string, pokedex *Pokedex) error {
+	if len(pokedex.caughtPokemon) == 0 {
+		fmt.Println("You haven't caught any pokemon yet")
+	} else {
+		fmt.Println("Your Pokedex")
+		for _, pokemon := range pokedex.caughtPokemon {
+			fmt.Println(" - " + pokemon.Name)
+		}
 	}
 
 	return nil
